@@ -1,4 +1,4 @@
-tab <- read.csv("../data/btc_spot_1d.csv")
+tab <- read.csv("./data/btc_spot_1d.csv")
 
 # 1) Nuage & corrélation
 plot(tab$open, tab$close, main="Close en fonction de Open",
@@ -23,3 +23,4 @@ summary(modele)$r.squared
 # 5) Prédictions exemples
 newx <- data.frame(open=c(10000, 30000, 60000))
 predict(modele, newdata=newx)
+

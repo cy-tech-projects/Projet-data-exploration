@@ -1,4 +1,4 @@
-tab <- read.csv("../data/btc_spot_1d.csv")
+tab <- read.csv("./data/btc_spot_1d.csv")
 tab$trend <- as.factor(tab$trend)
 tab$vol_level <- factor(tab$vol_level, levels=c("Faible","Moyenne","Élevée"), ordered=TRUE)
 
@@ -25,3 +25,4 @@ ssr <- sum( (y - mu_g[as.character(g)])^2, na.rm=TRUE) # résiduelle
 sst <- var(y, na.rm=TRUE) * (sum(!is.na(y)) - 1)
 
 c(sse=sse, ssr=ssr, sst=sst, ratio_exp = sse/sst)  # ratio_exp = "rapport de corrélation"
+

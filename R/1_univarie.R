@@ -1,5 +1,5 @@
 # 1) Lecture
-tab <- read.csv("../data/btc_spot_1d.csv")
+tab <- read.csv("./data/btc_spot_1d.csv")
 
 # 2) Résumés numériques (quantitatif)
 summary(tab$close)        # moyenne, médiane, quantiles, etc.
@@ -28,3 +28,4 @@ prop.table(t_vol)
 brks <- quantile(tab$close, probs=c(0, .25, .5, .75, 1), na.rm=TRUE)
 tab$close_bucket <- cut(tab$close, breaks=unique(brks), include.lowest=TRUE)
 table(tab$close_bucket)
+

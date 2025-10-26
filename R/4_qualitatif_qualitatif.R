@@ -1,4 +1,4 @@
-tab <- read.csv("../data/btc_spot_1d.csv")
+tab <- read.csv("./data/btc_spot_1d.csv")
 tab$trend <- factor(tab$trend)  # nominale
 tab$vol_level <- factor(tab$vol_level, levels=c("Faible","Moyenne","Élevée"), ordered=TRUE)
 
@@ -18,3 +18,4 @@ barplot(t(prof_lignes), beside=TRUE, legend=TRUE, main="Profils lignes")
 
 # 4) (Optionnel) Test d’indépendance (Chi-2)
 chisq.test(T)
+

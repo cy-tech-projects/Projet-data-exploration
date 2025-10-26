@@ -1,7 +1,7 @@
 # Packages de base; pour des jolis graphes, on peut ajouter factoextra/FactoMineR si souhaité.
 # install.packages("FactoMineR"); install.packages("factoextra")
 
-tab <- read.csv("../data/btc_spot_1d.csv")
+tab <- read.csv("./data/btc_spot_1d.csv")
 
 # 1) Sous-ensemble numérique + nettoyage
 num <- subset(tab, select=c(open, high, low, close, volume, range, ret, vol_10d))
@@ -22,3 +22,4 @@ plot(pca, type="l", main="Scree plot (prcomp)")
 # 5) Corrélations variables-axes (approx via charges, car données standardisées)
 # Pour une sortie "cercle des corrélations" plus directe, préférer FactoMineR/factoextra (optionnel).
 # library(FactoMineR); PCA(num, scale.unit=TRUE, graph=TRUE)
+
