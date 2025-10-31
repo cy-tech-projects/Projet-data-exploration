@@ -1,0 +1,36 @@
+RÉSUMÉ DES ANALYSES - BITCOIN
+============================================================ 
+
+Date de génération: 2025-10-31 23:04:05 
+Période analysée: 17897 à 20392 
+Nombre d'observations: 2496 
+
+STATISTIQUES CLÉS
+------------------------------------------------------------ 
+Prix BTC moyen: 40251.07 USD
+Prix BTC médian: 30464.79 USD
+Prix BTC min: 3398.4 USD
+Prix BTC max: 124658.5 USD
+Rendement moyen: 0.19 %
+Volatilité moyenne (30j): 0.4869 
+
+CORRÉLATIONS PRINCIPALES
+------------------------------------------------------------ 
+BTC-ETH (prix): 0.8134 
+BTC-SP500 (prix): 0.9417 
+BTC-Gold (prix): 0.9018 
+BTC-ETH (rendements): 0.8134 
+BTC-SP500 (rendements): 0.3629 
+BTC-Gold (rendements): 0.0974 
+
+DISTRIBUTION PAR TENDANCE
+------------------------------------------------------------ 
+
+Baisse Hausse 
+  1129   1367 
+
+DISTRIBUTION PAR NIVEAU DE VOLATILITÉ
+------------------------------------------------------------ 
+
+ Faible Moyenne  Élevée 
+    814     813     839 
