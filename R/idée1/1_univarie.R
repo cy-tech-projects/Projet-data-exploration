@@ -29,3 +29,6 @@ brks <- quantile(tab$close, probs=c(0, .25, .5, .75, 1), na.rm=TRUE)
 tab$close_bucket <- cut(tab$close, breaks=unique(brks), include.lowest=TRUE)
 table(tab$close_bucket)
 
+
+
+
