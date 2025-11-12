@@ -5,7 +5,7 @@
 
 
 # Importer le jeu de données
-Dataset <- read.csv("R/data_final.csv", header=T, sep=';', row.names=1, encoding="UTF-8")
+Dataset <- read.csv("R/data_final.csv", header=T, sep=';', row.names=1, encoding="UTF-8", stringsAsFactors=FALSE)
 
 # Vérifier l'importation
 cat("Nombre d'observations :", nrow(Dataset), "\n")
@@ -36,11 +36,11 @@ summary(Dataset)
 # Renommer les colonnes pour plus de clarté
 colnames(Dataset) = c("Tendance", "Volatilite", "Prix_BTC", "Var_Prix_BTC",
                       "Volume_BTC", "Var_Volume_BTC", "Prix_ETH", "Var_Prix_ETH",
-                      "Volume_ETH", "Var_Volume_ETH", "Prix_BNB", "Var_Prix_BNB",
-                      "Prix_USDT", "Var_Prix_USDT", "Fear_Index", 
+                      "Volume_ETH", "Var_Volume_ETH", "Prix_snp500", "Var_Prix_snp500",
+                      "Prix_Gold", "Var_Prix_Gold", "Fear_Index", 
                       "Fear_Level1", "Fear_Level2", "Var_Fear", "Var_Fear_Pct",
                       "Autre_Variable")
-
+                      
 # Vérifier les noms
 names(Dataset)
 
@@ -59,31 +59,6 @@ levels(Dataset$Volatilite)
 # 3. ANALYSE DES VARIABLES QUANTITATIVES
 # ========================================
 
-#Nombre de jour avec le btc eth au dessus de certains paliers et le gold
-# Fonction utilitaire : calcule le nombre de jours au-dessus de plusieurs paliers
-make_threshold_table <- function(x, thresholds, name = "") {
-    total_days <- sum(!is.na(x))
-    counts <- sapply(thresholds, function(t) sum(x > t, na.rm = TRUE))
-    df <- data.frame(Seuil = thresholds,
-                                     Jours_Au_Dessus = as.integer(counts),
-                                     Pourcentage = round(100 * counts / total_days, 2))
-    cat("\nTableau pour", name, "\n")
-    print(df, row.names = FALSE)
-    return(df)
-}
-
-# Exemples de paliers (adapter selon vos besoins)
-btc_thresholds <- c(20000, 30000, 40000)
-eth_thresholds <- c(1000, 2000, 3000)
-gold_thresholds <- c(1500, 1800, 2000)  # remplacer si "Autre_Variable" n'est pas l'or
-
-# Tables pour BTC, ETH et "Autre_Variable" (ex: or)
-table_btc <- make_threshold_table(Dataset$Prix_BTC, btc_thresholds, "BTC")
-table_eth <- make_threshold_table(Dataset$Prix_ETH, eth_thresholds, "ETH")
-table_gold <- make_threshold_table(Dataset$Autre_Variable, gold_thresholds, "Autre_Variable")
-
-
-
 cat("\n========== ANALYSE DU PRIX BTC ==========\n")
 
 # Résumé numérique
@@ -99,14 +74,39 @@ cat("Q1:", Q1_BTC, " - Q3:", Q3_BTC, "\n")
 cat("IQR:", Q3_BTC - Q1_BTC, "\n")
 
 # Graphiques
-par(mfrow=c(1,2))  # Créer une grille 1x2 pour les graphiques
+par(mfrow=c(2,1))  # Créer une grille 1x2 pour les graphiques
 
 # Histogramme
 hist(Dataset$Prix_BTC, 
      main='Histogramme du Prix BTC',
      xlab='Prix BTC',
      col='blue',
+     breaks=30)
+
+hist(Dataset$Prix_ETH, 
+     main='Histogramme du Prix ETH',
+     xlab='Prix ETH',
+     col='lightgreen',
+     breaks=30)
+    
+hist(Dataset$Prix_Gold, 
+     main='Histogramme du Prix Gold',
+     xlab='Prix Gold',
+     col='gold',
+     breaks=30)
+
+hist(Dataset$Prix_snp500, 
+     main='Histogramme du Prix S&P 500',
+     xlab='Prix S&P 500',
+     col='orange',
+     breaks=30)
+    
+hist(Dataset$Fear_Index, 
+     main='Histogramme du Fear Index',
+     xlab='Fear Index',
+     col='purple',
      breaks=10)
+
 
 # Boîte de Tukey (Boxplot)
 boxplot(Dataset$Prix_BTC,
@@ -114,36 +114,168 @@ boxplot(Dataset$Prix_BTC,
         ylab='Prix BTC',
         col='grey')
 
+boxplot(Dataset$Prix_ETH,
+        main='Boxplot du Prix ETH',
+        ylab='Prix ETH',
+        col='lightgreen')
+
+boxplot(Dataset$Prix_Gold,
+        main='Boxplot du Prix Gold',
+        ylab='Prix Gold',
+        col='gold')
+
+boxplot(Dataset$Prix_snp500,
+        main='Boxplot du Prix S&P 500',
+        ylab='Prix S&P 500',
+        col='orange')
+
+boxplot(Dataset$Fear_Index,
+        main='Boxplot du Fear Index',
+        ylab='Fear Index',
+        col='lightblue')
+
+# tableau d'effectifs par intervalles              BTC
+
+# 1. Déterminer les bornes (breaks)
+breaks <- hist(Dataset$Prix_BTC, breaks = 30, plot = FALSE)$breaks
+
+# 2. Créer les classes de prix et compter les fréquences par classe
+classes_prix <- cut(Dataset$Prix_BTC, breaks = breaks, right = TRUE, include.lowest = TRUE)
+tableau_frequence <- as.data.frame(table(classes_prix))
+colnames(tableau_frequence) <- c("Intervalle_Prix", "Nombre_Jours")
+
+# 3. Calculer le nombre cumulé (à partir du haut)
+tableau_frequence$Cumule_Inverse <- rev(cumsum(rev(tableau_frequence$Nombre_Jours)))
+
+# 4. Construire le tableau final "Seuil de Prix" vs "Jours au-dessus"
+# On prend toutes les bornes sauf la dernière, qui est le prix maximum
+Bornes_Inferieures <- breaks[-length(breaks)] 
+
+# Les Jours_Au_Dessus correspondent au Cumule_Inverse de la classe suivante.
+# On ajoute un '0' à la fin, car il n'y a 0 jour au-dessus de la borne la plus haute.
+Tableau_Final <- data.frame(
+  Seuil_Prix = Bornes_Inferieures,
+  Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
+)
+
+# eth
+
+# 1. Déterminer les bornes (breaks)
+breaks <- hist(Dataset$Prix_ETH, breaks = 30, plot = FALSE)$breaks
+
+# 2. Créer les classes de prix et compter les fréquences par classe
+classes_prix <- cut(Dataset$Prix_ETH, breaks = breaks, right = TRUE, include.lowest = TRUE)
+tableau_frequence <- as.data.frame(table(classes_prix))
+colnames(tableau_frequence) <- c("Intervalle_Prix", "Nombre_Jours")
+
+# 3. Calculer le nombre cumulé (à partir du haut)
+tableau_frequence$Cumule_Inverse <- rev(cumsum(rev(tableau_frequence$Nombre_Jours)))
+
+# 4. Construire le tableau final "Seuil de Prix" vs "Jours au-dessus"
+# On prend toutes les bornes sauf la dernière, qui est le prix maximum
+Bornes_Inferieures <- breaks[-length(breaks)] 
+
+# Les Jours_Au_Dessus correspondent au Cumule_Inverse de la classe suivante.
+# On ajoute un '0' à la fin, car il n'y a 0 jour au-dessus de la borne la plus haute.
+Tableau_Final <- data.frame(
+  Seuil_Prix = Bornes_Inferieures,
+  Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
+)
+
+
+# Gold
+
+# 1. Déterminer les bornes (breaks)
+breaks <- hist(Dataset$Prix_Gold, breaks = 30, plot = FALSE)$breaks
+
+# 2. Créer les classes de prix et compter les fréquences par classe
+classes_prix <- cut(Dataset$Prix_Gold, breaks = breaks, right = TRUE, include.lowest = TRUE)
+tableau_frequence <- as.data.frame(table(classes_prix))
+colnames(tableau_frequence) <- c("Intervalle_Prix", "Nombre_Jours")
+
+# 3. Calculer le nombre cumulé (à partir du haut)
+tableau_frequence$Cumule_Inverse <- rev(cumsum(rev(tableau_frequence$Nombre_Jours)))
+
+# 4. Construire le tableau final "Seuil de Prix" vs "Jours au-dessus"
+# On prend toutes les bornes sauf la dernière, qui est le prix maximum
+Bornes_Inferieures <- breaks[-length(breaks)] 
+
+# Les Jours_Au_Dessus correspondent au Cumule_Inverse de la classe suivante.
+# On ajoute un '0' à la fin, car il n'y a 0 jour au-dessus de la borne la plus haute.
+Tableau_Final <- data.frame(
+  Seuil_Prix = Bornes_Inferieures,
+  Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
+)
+
+
+
+
+# snp500
+
+# 1. Déterminer les bornes (breaks)
+breaks <- hist(Dataset$Prix_snp500, breaks = 30, plot = FALSE)$breaks
+
+# 2. Créer les classes de prix et compter les fréquences par classe
+classes_prix <- cut(Dataset$Prix_snp500, breaks = breaks, right = TRUE, include.lowest = TRUE)
+tableau_frequence <- as.data.frame(table(classes_prix))
+colnames(tableau_frequence) <- c("Intervalle_Prix", "Nombre_Jours")
+
+# 3. Calculer le nombre cumulé (à partir du haut)
+tableau_frequence$Cumule_Inverse <- rev(cumsum(rev(tableau_frequence$Nombre_Jours)))
+
+# 4. Construire le tableau final "Seuil de Prix" vs "Jours au-dessus"
+# On prend toutes les bornes sauf la dernière, qui est le prix maximum
+Bornes_Inferieures <- breaks[-length(breaks)] 
+
+# Les Jours_Au_Dessus correspondent au Cumule_Inverse de la classe suivante.
+# On ajoute un '0' à la fin, car il n'y a 0 jour au-dessus de la borne la plus haute.
+Tableau_Final <- data.frame(
+  Seuil_Prix = Bornes_Inferieures,
+  Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
+)
+
+
+
+# Afficher le tableau de résultat
+print(Tableau_Final)
+# Transposer : colonnes = Seuil_Prix, ligne = Jours_Au_Dessus
+Tableau_Final.T <- as.data.frame(t(Tableau_Final$Jours_Au_Dessus))
+colnames(Tableau_Final.T) <- as.character(Tableau_Final$Seuil_Prix)
+rownames(Tableau_Final.T) <- "Jours_Au_Dessus"
+print(Tableau_Final.T)
+
+
+# fear index
+# 1. Déterminer les bornes (breaks)
+breaks <- hist(Dataset$Fear_Index, breaks = 30, plot = FALSE)$breaks
+
+# 2. Créer les classes de prix et compter les fréquences par classe
+classes_prix <- cut(Dataset$Fear_Index, breaks = breaks, right = TRUE, include.lowest = TRUE)
+tableau_frequence <- as.data.frame(table(classes_prix))
+colnames(tableau_frequence) <- c("Intervalle_Prix", "Nombre_Jours")
+
+# 3. Calculer le nombre cumulé (à partir du haut)
+tableau_frequence$Cumule_Inverse <- rev(cumsum(rev(tableau_frequence$Nombre_Jours)))
+
+# 4. Construire le tableau final "Seuil de Prix" vs "Jours au-dessus"
+# On prend toutes les bornes sauf la dernière, qui est le prix maximum
+Bornes_Inferieures <- breaks[-length(breaks)] 
+
+# Les Jours_Au_Dessus correspondent au Cumule_Inverse de la classe suivante.
+# On ajoute un '0' à la fin, car il n'y a 0 jour au-dessus de la borne la plus haute.
+Tableau_Final <- data.frame(
+  Seuil_Prix = Bornes_Inferieures,
+  Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
+)
+
+
+
+
 # Réinitialiser la grille graphique
 par(mfrow=c(1,1))
 
 # ========================================
-# EXERCICE : Transformation des données
-# ========================================
-
-cat("\n========== EXERCICE : TRANSFORMATIONS ==========\n")
-
-# a) Ajouter 10 à la série Prix_BTC
-Prix_BTC_plus10 = Dataset$Prix_BTC + 10
-cat("\nAjout de 10:\n")
-cat("Ancienne moyenne:", mean(Dataset$Prix_BTC, na.rm=TRUE), "\n")
-cat("Nouvelle moyenne:", mean(Prix_BTC_plus10, na.rm=TRUE), "\n")
-cat("Différence:", mean(Prix_BTC_plus10, na.rm=TRUE) - mean(Dataset$Prix_BTC, na.rm=TRUE), "\n")
-cat("Ancien écart-type:", sd(Dataset$Prix_BTC, na.rm=TRUE), "\n")
-cat("Nouvel écart-type:", sd(Prix_BTC_plus10, na.rm=TRUE), "\n")
-cat("CONCLUSION: L'ajout d'une constante déplace la moyenne mais ne change pas l'écart-type\n")
-
-# b) Multiplier la série Prix_BTC par 2
-Prix_BTC_fois2 = Dataset$Prix_BTC * 2
-cat("\nMultiplication par 2:\n")
-cat("Ancienne moyenne:", mean(Dataset$Prix_BTC, na.rm=TRUE), "\n")
-cat("Nouvelle moyenne:", mean(Prix_BTC_fois2, na.rm=TRUE), "\n")
-cat("Ancien écart-type:", sd(Dataset$Prix_BTC, na.rm=TRUE), "\n")
-cat("Nouvel écart-type:", sd(Prix_BTC_fois2, na.rm=TRUE), "\n")
-cat("CONCLUSION: La multiplication par une constante multiplie la moyenne ET l'écart-type\n")
-
-# ========================================
-# 4. ANALYSE DES VARIABLES QUALITATIVES
+# 2. ANALYSE DES VARIABLES QUALITATIVES
 # ========================================
 
 cat("\n========== ANALYSE DE LA TENDANCE ==========\n")
@@ -310,25 +442,3 @@ if(length(outliers_Fear) > 0) {
 # Sauvegarder le dataset modifié
 # write.table(Dataset, file='crypto_data_analyse.csv', 
 #             sep=';', row.names=TRUE, col.names=TRUE)
-
-cat("\n========== ANALYSE TERMINÉE ==========\n")
-cat("N'oubliez pas de sauvegarder votre script!\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
