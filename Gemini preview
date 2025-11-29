@@ -1,0 +1,200 @@
+# ==============================================================================
+# PROJET : ANALYSE QUANTITATIVE BITCOIN (VERSION COMPLÈTE + VOLATILITÉ)
+# FICHIER CIBLE : bitcoin_with_fear_greed_fed_data_final.csv
+# ==============================================================================
+
+# 1. LIBRAIRIES ----------------------------------------------------------------
+packages <- c("tidyverse", "lubridate", "readr", "zoo", "corrplot", "janitor", 
+              "FactoMineR", "factoextra", "gridExtra", "scales")
+
+new_packages <- packages[!(packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+library(tidyverse)
+library(lubridate)
+library(readr)
+library(zoo)
+library(corrplot)
+library(janitor)
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+library(scales)
+
+options(scipen = 999)
+theme_set(theme_minimal())
+
+# 2. IMPORTATION INTELLIGENTE --------------------------------------------------
+print("--- ÉTAPE 1 : CHARGEMENT DES DONNÉES ---")
+
+target_file <- "bitcoin_with_fear_greed_fed_data_final.csv"
+df_raw <- NULL
+
+# Fonction de lecture qui essaie les deux séparateurs
+read_data_flexible <- function(file_path) {
+  d <- read_csv(file_path, show_col_types = FALSE)
+  if(ncol(d) <= 1) { 
+    d <- read_delim(file_path, delim = ";", show_col_types = FALSE)
+  }
+  return(d)
+}
+
+if (file.exists(target_file)) {
+  print(paste("✅ Fichier trouvé :", target_file))
+  df_raw <- read_data_flexible(target_file) %>% clean_names()
+} else {
+  print("⚠️ Fichier introuvable. Sélection manuelle...")
+  tryCatch({
+    file_path <- file.choose()
+    df_raw <- read_data_flexible(file_path) %>% clean_names()
+  }, error = function(e) { stop("❌ Aucune sélection. Arrêt.") })
+}
+
+# 3. NETTOYAGE ET CONVERSION ---------------------------------------------------
+print("--- ÉTAPE 2 : CONVERSION DES DONNÉES ---")
+
+df_clean <- df_raw %>%
+  mutate(
+    # Date : parsing robuste
+    date_parsed = ymd_hms(date),
+    date_parsed = if_else(is.na(date_parsed), ymd(substr(date, 1, 10)), date_parsed),
+    date = date_parsed
+  ) %>%
+  filter(!is.na(date)) %>%
+  mutate(
+    # Force la conversion en nombres
+    ret_btc   = as.numeric(as.character(ret_btc)),
+    ret_sp500 = if("ret_sp500" %in% names(.)) as.numeric(as.character(ret_sp500)) else NA,
+    ret_gold  = if("ret_gold" %in% names(.)) as.numeric(as.character(ret_gold)) else NA,
+    ret_eth   = if("ret_eth" %in% names(.)) as.numeric(as.character(ret_eth)) else NA,
+    fed_rate  = if("fed_real_rate" %in% names(.)) as.numeric(as.character(fed_real_rate)) else NA,
+    fgi_score = if("fgi_score" %in% names(.)) as.numeric(as.character(fgi_score)) else NA
+  ) %>%
+  arrange(date)
+
+print(paste("✅ Lignes chargées valides :", nrow(df_clean)))
+
+# 4. ANALYSE 1 : MATRICE DE CORRÉLATION ----------------------------------------
+print("--- ANALYSE 1 : MATRICE DE CORRÉLATION ---")
+
+df_corr <- df_clean %>%
+  select(ret_btc, ret_eth, ret_sp500, ret_gold, fed_rate, fgi_score) %>%
+  rename(BTC=ret_btc, ETH=ret_eth, SP500=ret_sp500, OR=ret_gold, TAUX=fed_rate, SENTIMENT=fgi_score) %>%
+  select(where(is.numeric)) %>%
+  select(where(~sum(!is.na(.)) > 20))
+
+if(ncol(df_corr) >= 2) {
+  M <- cor(df_corr, use = "pairwise.complete.obs")
+  M[is.na(M)] <- 0
+  corrplot(M, method="color", type="upper", addCoef.col="black", 
+           tl.col="black", title="Matrice de Corrélation", mar=c(0,0,2,0),
+           col=colorRampPalette(c("red", "white", "blue"))(200))
+}
+
+# 5. ANALYSE 2 : PERFORMANCE COMPARÉE ------------------------------------------
+print("--- ANALYSE 2 : GRAPHIQUE PERFORMANCE ---")
+
+cols_perf <- c("ret_btc", "ret_sp500", "ret_gold")
+cols_ok <- cols_perf[cols_perf %in% names(df_clean)]
+
+if(length(cols_ok) > 0) {
+  df_perf <- df_clean %>%
+    select(date, all_of(cols_ok)) %>%
+    mutate(across(all_of(cols_ok), ~ replace_na(., 0))) %>%
+    mutate(across(all_of(cols_ok), ~ 100 * cumprod(1 + .))) %>%
+    pivot_longer(cols = -date, names_to = "Actif", values_to = "Valeur")
+  
+  p_perf <- ggplot(df_perf, aes(x = date, y = Valeur, color = Actif)) +
+    geom_line(linewidth = 0.8) +
+    scale_y_log10(labels = comma) +
+    labs(title = "Performance Comparée (Base 100 - Echelle Log)", 
+         y = "Valeur (Log)", x = "Date") +
+    theme_minimal()
+  
+  print(p_perf)
+}
+
+# 6. ANALYSE 3 : ACP -----------------------------------------------------------
+print("--- ANALYSE 3 : ACP ---")
+
+vars_pca <- c("ret_btc", "ret_sp500", "ret_gold", "fed_rate", "trend")
+vars_present <- vars_pca[vars_pca %in% names(df_clean)]
+df_pca_strict <- df_clean %>% select(all_of(vars_present)) %>% na.omit()
+nums <- df_pca_strict %>% select(where(is.numeric))
+
+if(nrow(df_pca_strict) > 50 && ncol(nums) >= 3) {
+  res.pca <- PCA(nums, scale.unit = TRUE, graph = FALSE)
+  
+  print(fviz_pca_var(res.pca, col.var="cos2", repel=TRUE, 
+                     gradient.cols = c("blue", "yellow", "red"),
+                     title="ACP - Variables"))
+  
+  set.seed(123)
+  idx <- sample(1:nrow(df_pca_strict), min(300, nrow(df_pca_strict)))
+  col_vec <- if("trend" %in% names(df_pca_strict)) df_pca_strict$trend else NULL
+  
+  p_ind <- fviz_pca_ind(res.pca, geom="point", col.ind = col_vec, palette = "jco",
+                        select.ind = list(ind = idx), addEllipses = TRUE,
+                        title="ACP - Projection des Individus")
+  print(p_ind)
+}
+
+# 7. ANALYSE 5 : VOLATILITÉ (NOUVEAU) ------------------------------------------
+print("--- ANALYSE 5 : VOLATILITÉ ET HEATMAP ---")
+
+# A. Comparaison de la volatilité (Rolling Volatility)
+# On utilise une fenêtre de 30 jours. On annualise (x sqrt(365)) pour que ce soit parlant.
+window_vol <- 30
+
+df_vol <- df_clean %>%
+  select(date, ret_btc, ret_sp500, ret_gold) %>%
+  arrange(date) %>%
+  mutate(
+    # Volatilité annualisée (Ecart-type glissant * racine(365))
+    Vol_BTC   = rollapply(ret_btc, window_vol, sd, fill=NA, align="right") * sqrt(365),
+    Vol_SP500 = rollapply(ret_sp500, window_vol, sd, fill=NA, align="right") * sqrt(252), # 252 jours de bourse
+    Vol_GOLD  = rollapply(ret_gold, window_vol, sd, fill=NA, align="right") * sqrt(252)
+  ) %>%
+  select(date, starts_with("Vol_")) %>%
+  pivot_longer(cols = -date, names_to = "Actif", values_to = "Volatilite") %>%
+  filter(!is.na(Volatilite))
+
+p_vol_line <- ggplot(df_vol, aes(x = date, y = Volatilite, color = Actif)) +
+  geom_line(linewidth = 0.8) +
+  scale_y_continuous(labels = percent) + # Affiche en %
+  scale_color_manual(values = c("Vol_BTC"="#F7931A", "Vol_GOLD"="#FFD700", "Vol_SP500"="#0055bb")) +
+  labs(title = "Comparaison de la Volatilité (Risque)",
+       subtitle = "Volatilité annualisée glissante sur 30 jours",
+       y = "Volatilité (%)", x = "Année") +
+  theme_minimal()
+
+print(p_vol_line)
+
+# B. Nap de Volatilité (Heatmap Calendrier) pour le Bitcoin
+# On agrège la volatilité par Mois et Année
+df_heatmap <- df_clean %>%
+  mutate(
+    Year = year(date),
+    Month = month(date, label = TRUE, abbr = TRUE) # Jan, Fev, Mar...
+  ) %>%
+  group_by(Year, Month) %>%
+  summarise(
+    # On calcule l'écart-type des rendements du mois
+    Monthly_Vol = sd(ret_btc, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+p_heatmap <- ggplot(df_heatmap, aes(x = Month, y = factor(Year), fill = Monthly_Vol)) +
+  geom_tile(color = "white", lwd = 0.5) + # Cases blanches entre les tuiles
+  scale_fill_gradient2(low = "green", mid = "yellow", high = "red", 
+                       midpoint = median(df_heatmap$Monthly_Vol, na.rm=TRUE),
+                       name = "Volatilité\n(Std Dev)") +
+  labs(title = "Carte Thermique de Volatilité du Bitcoin (Risk Map)",
+       subtitle = "Rouge = Mois très instables | Vert = Mois calmes",
+       x = "Mois", y = "Année") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p_heatmap)
+
+print("--- FIN ---")
