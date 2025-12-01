@@ -8,7 +8,9 @@ editor: visual
 
 #### Chargement du Dataset
 
-`{r} Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)}`
+```{r}
+Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
+```
 
 ## a. Les Variables Quantitatives
 
