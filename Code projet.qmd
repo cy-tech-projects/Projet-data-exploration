@@ -16,7 +16,7 @@ Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
 
 ### [Résumé numeriques :]{.underline}
 
-#### Résumé des variables
+#### Résumé des variables Continues
 
 ```{r}
 str(Dataset)
@@ -33,9 +33,11 @@ colnames(Dataset)
 ```
 
 ```{r}
-colnames(Dataset) = c("Tendance", "Volatilite_level", "Prix_BTC", "Var_Prix_BTC",
-                      "Volatilite_BTC", "Volatilite30j_BTC", "Prix_ETH", "Var_Prix_ETH",
-                      "Volatilite_ETH", "Volatilite30j_ETH", "Prix_snp500", "Var_Prix_snp500",
+colnames(Dataset) = c("Tendance", "Volatilite_level", "Prix_BTC", 
+                      "Var_Prix_BTC", "Volatilite_BTC",
+                      "Volatilite30j_BTC", "Prix_ETH", "Var_Prix_ETH",
+                      "Volatilite_ETH", "Volatilite30j_ETH", 
+                      "Prix_snp500", "Var_Prix_snp500",
                       "Prix_Gold", "Var_Prix_Gold", "Fear_Index_score", 
                       "Fear_index_category", "Fear_index_category_simple",
                       "Variation_Fear","Var_Fear_Pct","taux_fed")
@@ -65,40 +67,30 @@ Dataset$Var_Fear_Pct = as.numeric(as.character(Dataset$Var_Fear_Pct))
 
 ```{r}
 # MOYENNE DES VARIABLES QUANTITATIVES Lié au BTC
-
-cat("moyenne des variables quantitatives lié au BTC :")
 mean(Dataset$Prix_BTC)
-mean(Dataset$Var_Prix_BTC, na.rm = TRUE) #afin de ne pas prendre en compte les NA
+mean(Dataset$Var_Prix_BTC, na.rm = TRUE) 
 mean(Dataset$Volatilite_BTC)
-mean(Dataset$Volatilite30j_BTC , na.rm = TRUE) # afin de ne pas prendre en compte les NA
+mean(Dataset$Volatilite30j_BTC , na.rm = TRUE)
 
 #mediane des variables quantitatives lié au BTC
-
-cat("mediane des variables quantitatives lié au BTC")
 median(Dataset$Prix_BTC)
 median(Dataset$Var_Prix_BTC, na.rm = TRUE)
 median(Dataset$Volatilite_BTC)
 median(Dataset$Volatilite30j_BTC , na.rm = TRUE)
 
 #ecart-type des variables quantitatives lié au BTC"
-
-cat("ecart-type des variables quantitatives lié au BTC")
 sd(Dataset$Prix_BTC)
 sd(Dataset$Var_Prix_BTC, na.rm = TRUE)
 sd(Dataset$Volatilite_BTC)
 sd(Dataset$Volatilite30j_BTC , na.rm = TRUE)
 
 #variance des variables quantitatives lié au BTC"
-
-cat("variance des variables quantitatives lié au BTC")
 var(Dataset$Prix_BTC)
 var(Dataset$Var_Prix_BTC, na.rm = TRUE)
 var(Dataset$Volatilite_BTC)
 var(Dataset$Volatilite30j_BTC , na.rm = TRUE)
 
 #Quantiles des variables quantitatives lié au BTC"
-
-cat("Quantiles des variables quantitatives lié au BTC")
 quantile(Dataset$Prix_BTC, na.rm = TRUE)
 quantile(Dataset$Var_Prix_BTC, na.rm = TRUE)
 quantile(Dataset$Volatilite_BTC)
@@ -112,37 +104,137 @@ quantile(Dataset$Volatilite30j_BTC , na.rm = TRUE)
 
 ```{r}
 hist(Dataset$Prix_BTC,main="Histogramme du Prix du BTC", 
-                      xlab ="Prix du BTC", col="blue", border="black")
+     xlab ="Prix du BTC", col="blue", border="black")
 
 hist(Dataset$Volatilite_BTC,main="Histogramme de la Volatilité  du BTC", 
-                            xlab ="Volatilité du BTC", col="green", border="black")
+     xlab ="Volatilité du BTC", col="green", border="black")
 
 hist(Dataset$Var_Prix_BTC,main="Histogramme de la Variation du Prix du BTC",
-                          xlab ="Variation du Prix du BTC", col="red", border="black")
+     xlab ="Variation du Prix du BTC", col="red", border="black")
 
 
-hist(Dataset$Volatilite30j_BTC,main="Histogramme de la Volatilité 30j du BTC", 
-                            xlab ="Volatilité 30j du BTC", col="purple", border="black")
+hist(Dataset$Volatilite30j_BTC,main="Histogramme de la Volatilité 30j du BTC",
+     xlab ="Volatilité 30j du BTC", col="purple", border="black")
 ```
 
-## [b. Les Variables Qualitatives]{.underline}
+### Tracage de tableaux lié a ces histogrammes
 
-## [c. Conclusion]{.underline}
-
-### Tracage des tableaux lié a ces histogrammes
 ```{r}
 hist_prix <- hist(Dataset$Prix_BTC, plot = FALSE)
 
 print(hist_prix['breaks'])
 print(hist_prix['counts'])
 
-table_freq <- data.frame(
-  Prix = hist_prix$breaks[-length(hist_prix$breaks)], # Les 13 bornes inférieures
-  Frequence = hist_prix$counts                             # Les 13 effectifs absolus
+table_prix_btc <- data.frame(
+  Prix = hist_prix$breaks[-length(hist_prix$breaks)],
+  Frequence = hist_prix$counts
 )
 
-table_freq_transposé = t(table_freq)
+table_prix_btc_transposé = t(table_prix_btc)
+print(table_prix_btc_transposé)
+
+hist_volatilite <- hist(Dataset$Volatilite_BTC, plot = FALSE)
+
+table_volatilite_btc <- data.frame(
+  Volatilite = hist_volatilite$breaks[-length(hist_volatilite$breaks)],
+  Frequence = hist_volatilite$counts                             
+)
+
+table_vol_btc_transposé = t(table_volatilite_btc)
+print(table_vol_btc_transposé)
+```
+
+#### Données moyenne \| Mediane \| Minimum ...
+
+```{r}
+summary(Dataset$Prix_BTC)
+summary(Dataset$Volatilite_BTC)
+```
+
+#### Box plot du prix BTC et volatilité BTC :
+```{r}
+boxplot(Dataset$Prix_BTC, main="Boxplot du Prix du BTC",
+        ylab="Prix du BTC", col="orange")
+boxplot(Dataset$Volatilite_BTC, main="Boxplot de la Volatilité du BTC",
+        ylab="Volatilité du BTC", col="cyan")
+```
+#### boxplot de la volatilité du BTC après avoir enlever les valeurs aberrantes
+```{r}
+boxplot(Dataset$Volatilite_BTC, main="Boxplot de la Volatil
+ité du BTC (sans valeurs aberrantes)",
+        ylab="Volatilité du BTC", col="cyan", outline=FALSE)
 ```  
+
+#### Résumé graphique de la variable discrete
+
+Le fear index est une variable discrete
+```{r}
+hist(Dataset$Fear_Index_score, main="Histogramme du Score du Fear Index", 
+     xlab ="Score du Fear Index (0-100)", col="pink", border="black")
+
+hist_fear_index_score <- hist(Dataset$Fear_Index_score, plot = FALSE)
+
+table_fear_index_score <- data.frame(
+  index_score = hist_fear_index_score$breaks[-length(hist_fear_index_score$breaks)],
+  Frequence = hist_fear_index_score$counts                             
+)
+
+table_fear_index_score_transposé = t(table_fear_index_score)
+print(table_fear_index_score_transposé)
+
+boxplot(Dataset$Fear_Index_score, main="Boxplot du Fear Index Category Simple",
+        ylab="Score du Fear Index (0-100)", col="lightgreen")
+```
+
+#### Résumé de la variable quantitative discrete
+```{r}  
+summary(Dataset$Fear_Index_score)
+```
+
+
+## [b. Les Variables Qualitatives]{.underline}
+
+#### on peut réaliser les tableaux de contingences pour la tendance ou bien le 
+fear and greed index category
+
+```{r}
+table_tendance = table(Dataset$Tendance)
+print(table_tendance)
+
+table_fear_and_greed_category = table(Dataset$Fear_index_category)
+print(table_fear_and_greed_category)
+```
+#### Representation graphique :
+
+On peut utiliser un diagramme en cercle
+```{r}
+# pour la tendance
+couleurs <- rainbow(length(table_tendance))
+pie(table_tendance, 
+    main="Diagramme en Cercle de la Tendance",
+    col = couleurs,
+    clockwise = TRUE)
+
+barplot(table_tendance,
+        main="Diagramme en Barres de la Tendance",
+        xlab="Catégories de Tendance",
+        ylab="Fréquence (Nombre de jours)",
+        col=couleurs)
+
+# pour le fear and greed index category
+couleurs_fear <- rainbow(length(table_fear_and_greed_category))
+pie(table_fear_and_greed_category,
+    main="Diagramme en Cercle du Fear and Greed Index Category",
+    col = couleurs_fear,
+    clockwise = TRUE)
+
+barplot(table_fear_and_greed_category,
+        main="Diagramme en Barres du Fear and Greed Index Category",
+        xlab="Catégories du Fear and Greed Index",
+        ylab="Fréquence (Nombre de jours)",
+        col=couleurs_fear)
+```
+## [c. Conclusion]{.underline}
 
 # [2 - Analyse bivarié]{.underline}
 
