@@ -1,0 +1,161 @@
+---
+title: "Projet : BTC ETH SNP500 "
+format: pdf
+editor: visual
+---
+
+# [1 - Analyse Univarié]{.underline}
+
+#### Chargement du Dataset
+
+```{r}
+Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
+```
+
+## [a. Les Variables Quantitatives]{.underline}
+
+### [Résumé numeriques :]{.underline}
+
+#### Résumé des variables
+
+```{r}
+str(Dataset)
+```
+
+```{r}
+summary(Dataset)
+```
+
+#### Lister le nom des colonnes et renommer proprement
+
+```{r}
+colnames(Dataset)
+```
+
+```{r}
+colnames(Dataset) = c("Tendance", "Volatilite_level", "Prix_BTC", "Var_Prix_BTC",
+                      "Volatilite_BTC", "Volatilite30j_BTC", "Prix_ETH", "Var_Prix_ETH",
+                      "Volatilite_ETH", "Volatilite30j_ETH", "Prix_snp500", "Var_Prix_snp500",
+                      "Prix_Gold", "Var_Prix_Gold", "Fear_Index_score", 
+                      "Fear_index_category", "Fear_index_category_simple",
+                      "Variation_Fear","Var_Fear_Pct","taux_fed")
+```
+
+#### Passage des colonnes neccessaire en numérique pour eliminer les problèmes d'analyse (NA) :
+
+```{r}
+Dataset$Prix_BTC = as.numeric(as.character(Dataset$Prix_BTC))
+Dataset$Var_Prix_BTC = as.numeric(as.character(Dataset$Var_Prix_BTC))
+Dataset$Volatilite_BTC = as.numeric(as.character(Dataset$Volatilite_BTC))
+Dataset$Volatilite30j_BTC = as.numeric(as.character(Dataset$Volatilite30j_BTC))
+Dataset$Prix_ETH = as.numeric(as.character(Dataset$Prix_ETH))
+Dataset$Var_Prix_ETH = as.numeric(as.character(Dataset$Var_Prix_ETH))
+Dataset$Volatilite_ETH = as.numeric(as.character(Dataset$Volatilite_ETH))
+Dataset$Volatilite30j_ETH = as.numeric(as.character(Dataset$Volatilite30j_ETH))
+Dataset$Prix_snp500 = as.numeric(as.character(Dataset$Prix_snp500))
+Dataset$Var_Prix_snp500 = as.numeric(as.character(Dataset$Var_Prix_snp500))
+Dataset$Prix_Gold = as.numeric(as.character(Dataset$Prix_Gold))
+Dataset$Var_Prix_Gold = as.numeric(as.character(Dataset$Var_Prix_Gold))
+Dataset$Fear_Index_score = as.numeric(as.character(Dataset$Fear_Index_score))
+Dataset$Variation_Fear = as.numeric(as.character(Dataset$Variation_Fear))
+Dataset$Var_Fear_Pct = as.numeric(as.character(Dataset$Var_Fear_Pct))
+```
+
+#### Résumé numérique des infos sur le BTC : (toutes ces infos sont trouvables avec la commande summary(Dataset) )
+
+```{r}
+# MOYENNE DES VARIABLES QUANTITATIVES Lié au BTC
+
+cat("moyenne des variables quantitatives lié au BTC :")
+mean(Dataset$Prix_BTC)
+mean(Dataset$Var_Prix_BTC, na.rm = TRUE) #afin de ne pas prendre en compte les NA
+mean(Dataset$Volatilite_BTC)
+mean(Dataset$Volatilite30j_BTC , na.rm = TRUE) # afin de ne pas prendre en compte les NA
+
+#mediane des variables quantitatives lié au BTC
+
+cat("mediane des variables quantitatives lié au BTC")
+median(Dataset$Prix_BTC)
+median(Dataset$Var_Prix_BTC, na.rm = TRUE)
+median(Dataset$Volatilite_BTC)
+median(Dataset$Volatilite30j_BTC , na.rm = TRUE)
+
+#ecart-type des variables quantitatives lié au BTC"
+
+cat("ecart-type des variables quantitatives lié au BTC")
+sd(Dataset$Prix_BTC)
+sd(Dataset$Var_Prix_BTC, na.rm = TRUE)
+sd(Dataset$Volatilite_BTC)
+sd(Dataset$Volatilite30j_BTC , na.rm = TRUE)
+
+#variance des variables quantitatives lié au BTC"
+
+cat("variance des variables quantitatives lié au BTC")
+var(Dataset$Prix_BTC)
+var(Dataset$Var_Prix_BTC, na.rm = TRUE)
+var(Dataset$Volatilite_BTC)
+var(Dataset$Volatilite30j_BTC , na.rm = TRUE)
+
+#Quantiles des variables quantitatives lié au BTC"
+
+cat("Quantiles des variables quantitatives lié au BTC")
+quantile(Dataset$Prix_BTC, na.rm = TRUE)
+quantile(Dataset$Var_Prix_BTC, na.rm = TRUE)
+quantile(Dataset$Volatilite_BTC)
+quantile(Dataset$Volatilite30j_BTC , na.rm = TRUE)
+
+```
+
+### [Résumé Graphique]{.underline}
+
+#### Histogramme de certaines variables lié au BTC
+
+```{r}
+hist(Dataset$Prix_BTC,main="Histogramme du Prix du BTC", 
+                      xlab ="Prix du BTC", col="blue", border="black")
+
+hist(Dataset$Volatilite_BTC,main="Histogramme de la Volatilité  du BTC", 
+                            xlab ="Volatilité du BTC", col="green", border="black")
+
+hist(Dataset$Var_Prix_BTC,main="Histogramme de la Variation du Prix du BTC",
+                          xlab ="Variation du Prix du BTC", col="red", border="black")
+
+
+hist(Dataset$Volatilite30j_BTC,main="Histogramme de la Volatilité 30j du BTC", 
+                            xlab ="Volatilité 30j du BTC", col="purple", border="black")
+```
+
+## [b. Les Variables Qualitatives]{.underline}
+
+## [c. Conclusion]{.underline}
+
+### Tracage des tableaux lié a ces histogrammes
+```{r}
+hist_prix <- hist(Dataset$Prix_BTC, plot = FALSE)
+
+print(hist_prix['breaks'])
+print(hist_prix['counts'])
+
+table_freq <- data.frame(
+  Prix = hist_prix$breaks[-length(hist_prix$breaks)], # Les 13 bornes inférieures
+  Frequence = hist_prix$counts                             # Les 13 effectifs absolus
+)
+
+table_freq_transposé = t(table_freq)
+```  
+
+# [2 - Analyse bivarié]{.underline}
+
+## [a. Croisement Quantitatif X Quantitatif]{.underline}
+
+## [b. Croisement Quantitatif X Qualitatif]{.underline}
+
+## [c. Conclusion]{.underline}
+
+# [3 - Analyse Multivarié]{.underline}
+
+## [a. AFC]{.underline}
+
+## [b. ACP]{.underline}
+
+## [c. Conclusion]{.underline}

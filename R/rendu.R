@@ -5,7 +5,7 @@
 
 
 # Importer le jeu de données
-Dataset <- read.csv("R/data_final.csv", header=T, sep=';', row.names=1, encoding="UTF-8", stringsAsFactors=FALSE)
+Dataset <- read.csv("./R/data_final.csv", header=T, sep=';', row.names=1, encoding="UTF-8", stringsAsFactors=FALSE)
 
 # Vérifier l'importation
 cat("Nombre d'observations :", nrow(Dataset), "\n")
