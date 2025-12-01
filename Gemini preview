@@ -27,7 +27,7 @@ theme_set(theme_minimal())
 # 2. IMPORTATION INTELLIGENTE --------------------------------------------------
 print("--- ÉTAPE 1 : CHARGEMENT DES DONNÉES ---")
 
-target_file <- "bitcoin_with_fear_greed_fed_data_final.csv"
+target_file <- "data/bitcoin_with_fear_greed_fed_data_final.csv"
 df_raw <- NULL
 
 # Fonction de lecture qui essaie les deux séparateurs

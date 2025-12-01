@@ -182,6 +182,14 @@ Tableau_Final <- data.frame(
   Jours_Au_Dessus = c(tableau_frequence$Cumule_Inverse[-1], 0)
 )
 
+# Afficher le tableau ETH et sa transposition
+print(Tableau_Final)
+
+Tableau_Final_ETH.T <- as.data.frame(t(Tableau_Final$Jours_Au_Dessus))
+colnames(Tableau_Final_ETH.T) <- as.character(Tableau_Final$Seuil_Prix)
+rownames(Tableau_Final_ETH.T) <- "Jours_Au_Dessus"
+print(Tableau_Final_ETH.T)
+
 
 # Gold
 
@@ -442,3 +450,5 @@ if(length(outliers_Fear) > 0) {
 # Sauvegarder le dataset modifié
 # write.table(Dataset, file='crypto_data_analyse.csv', 
 #             sep=';', row.names=TRUE, col.names=TRUE)
+
+
