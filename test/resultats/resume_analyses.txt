@@ -1,0 +1,29 @@
+RÉSUMÉ DES ANALYSES - BITCOIN
+============================================================ 
+
+Date de génération: 2025-11-01 19:06:47 
+Période analysée: 2019-01-01 00:00:00+00:00 à 2025-11-01 00:00:00+00:00 
+Nombre d'observations: 2497 
+
+STATISTIQUES CLÉS
+------------------------------------------------------------ 
+Prix BTC moyen: 40279.12 USD
+Prix BTC médian: 30466.93 USD
+Prix BTC min: 3398.4 USD
+Prix BTC max: 124658.5 USD
+Rendement moyen: 0.191 %
+Volatilité moyenne (30j): NA 
+
+CORRÉLATIONS PRINCIPALES
+------------------------------------------------------------ 
+DISTRIBUTION PAR TENDANCE
+------------------------------------------------------------ 
+
+Baisse Hausse 
+  1130   1367 
+
+DISTRIBUTION PAR NIVEAU DE VOLATILITÉ
+------------------------------------------------------------ 
+
+         Élevée  Faible Moyenne 
+     10     217    1178    1092 
