@@ -11,7 +11,7 @@ editor: visual
 Le fichier est chargé et la colonne de date est définie comme index (ou `row.names`).
 
 ```{r}
-Dataset = read.table("datase1.csv", header=T,sep=';',row.names=1)
+Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
 ```
 
 ## a. Les Variables Quantitatives
@@ -56,11 +56,11 @@ Cette étape est cruciale pour l'analyse, car elle convertit les colonnes potent
 ```{r}
 Dataset$Prix_BTC = as.numeric(as.character(Dataset$Prix_BTC))
 Dataset$Var_Prix_BTC = as.numeric(as.character(Dataset$Var_Prix_BTC))
-Dataset$Volatilite_BTC = as.numeric(as.character(Dataset$Volatilite_BTC))
+Dataset$Volume_BTC = as.numeric(as.character(Dataset$Volume_BTC))
 Dataset$Volatilite30j_BTC = as.numeric(as.character(Dataset$Volatilite30j_BTC))
 Dataset$Prix_ETH = as.numeric(as.character(Dataset$Prix_ETH))
 Dataset$Var_Prix_ETH = as.numeric(as.character(Dataset$Var_Prix_ETH))
-Dataset$Volatilite_ETH = as.numeric(as.character(Dataset$Volatilite_ETH))
+Dataset$Volume_ETH = as.numeric(as.character(Dataset$Volume_ETH))
 Dataset$Volatilite30j_ETH = as.numeric(as.character(Dataset$Volatilite30j_ETH))
 Dataset$Prix_snp500 = as.numeric(as.character(Dataset$Prix_snp500))
 Dataset$Var_Prix_snp500 = as.numeric(as.character(Dataset$Var_Prix_snp500))
