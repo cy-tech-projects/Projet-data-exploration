@@ -287,6 +287,9 @@ L'ACP nécessite de travailler sur les variables **centrées et réduites** pour
 Nous chargeons le fichier CSV et isolons les variables quantitatives pertinentes pour l'ACP.
 
 ```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
 
 colonnes_pca <- c('Prix_BTC','Var_Prix_BTC','Volume_BTC', 'Volatilite30j_BTC', 'Prix_ETH','Var_Prix_ETH', 'Volume_ETH','Volatilite30j_ETH', 'Prix_snp500','Var_Prix_snp500', 'Prix_Gold', 'Var_Prix_Gold','taux_fed', 'Fear_Index_score')
 
