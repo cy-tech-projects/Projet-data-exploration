@@ -307,8 +307,7 @@ L'ACP est exécutée sur le jeu de données centré et réduit. La fonction `PCA
 
 ```{r}
 # Exécution de l'ACP
-# ncp=5: conserve les 5 premières composantes pour les calculs de résultats
-res.pca <- PCA(df_pca, scale.unit = TRUE, ncp = 5, graph = FALSE)
+res.pca <- PCA(df_pca, scale.unit = TRUE, graph = TRUE)
 ```
 
 ------------------------------------------------------------------------
@@ -343,10 +342,12 @@ Le cercle des corrélations montre la contribution et la corrélation des variab
 
 ```{r}
 fviz_pca_var(res.pca,
-             col.var = "cos2", # Colore selon la qualité de représentation (cos2)
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE,     # Évite le chevauchement de texte
-             title = "Cercle des Corrélations sur le Plan Principal"
+                         col.var = "cos2",
+                         gradient.cols = c("#d1ff02ff", "#000dffff"),
+                         repel = TRUE,
+                         arrowsize = 1.05,
+                         title = "Cercle des corrélations",
+                         ggtheme = theme_minimal()
 )
 ```
 
@@ -365,13 +366,14 @@ fviz_pca_var(res.pca,
 ```{r}
 #| label: biplot
 #| fig-cap: "Biplot des Variables et des Observations (Individus)"
-#| fig-width: 10
-#| fig-height: 7
+#| fig-width: 20
+#| fig-height: 25
 
 fviz_pca_biplot(res.pca,
-                col.ind = "gray", # Couleur des points (jours)
-                col.var = "red",  # Couleur des flèches (variables)
+                col.ind = "red", # Couleur des points (jours)
+                col.var = "black",  # Couleur des flèches (variables)
                 pointsize = 1,
+                arrowsize = 2,
                 repel = TRUE,
                 title = "Biplot ACP : Variables et Observations"
 )
