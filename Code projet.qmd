@@ -307,7 +307,7 @@ L'ACP est exécutée sur le jeu de données centré et réduit. La fonction `PCA
 
 ```{r}
 # Exécution de l'ACP
-res.pca <- PCA(df_pca, scale.unit = TRUE, graph = TRUE)
+res.pca <- PCA(df_pca, scale.unit = TRUE, graph = FALSE)
 ```
 
 ------------------------------------------------------------------------
