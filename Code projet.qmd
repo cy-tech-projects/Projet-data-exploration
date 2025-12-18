@@ -268,9 +268,643 @@ barplot(table_fear_and_greed_category,
 
 ## [a. Croisement Quantitatif X Quantitatif]{.underline}
 
-## [b. Croisement Quantitatif X Qualitatif]{.underline}
+On compare le rendement du **BTC** (Y) à plusieurs variables explicatives (X) via : préparation, corrélations, nuages, régressions, résidus, prévisions, leviers et suppression d’un point influent.
 
-## [c. Conclusion]{.underline}
+------------------------------------------------------------------------
+
+## 1) Préparation des données
+
+Chargement du fichier, sélection des variables utiles et nettoyage des NA.
+
+```{r}
+# Mon code à mettre en format quarto studio R
+# J'ai fait les étapes que la prof a donné dans le cours étape par étape
+# ETAPE 1 : PREPARATION DES DONNEES
+
+# 1. Chargement
+dataset <- read.table("dataset(2).csv", header=TRUE, sep=";", dec=".")
+
+# 2. Sélection des variables (Rendements et Indicateurs)
+df <- data.frame(
+  Y_BTC   = dataset$ret_BTC,        # Cible
+  X_ETH   = dataset$ret_ETH,        # Crypto
+  X_SP500 = dataset$ret_SP500,      # Actions
+  X_GOLD  = dataset$ret_GOLD,       # Or
+  X_FGI   = dataset$fgi_score,      # Sentiment
+  X_TAUX  = dataset$fed_real_rate   # Macro
+)
+
+row.names(df) <- dataset$date 
+
+# 3. Nettoyage
+df <- na.omit(df)
+
+summary(df)
+
+# Boxplot global
+par(mfrow=c(1,1))
+boxplot(scale(df), main="Boxplot des variables (Valeurs Aberrantes)", col="lightblue")
+
+# Couleur unique
+MY_COLOR <- "dodgerblue4" 
+```
+
+------------------------------------------------------------------------
+
+## 2) Matrice de corrélation
+
+Calcul et affichage (numérique + visuel).
+
+```{r}
+# ETAPE 2 : MATRICE DE CORRELATION
+matrice_corr <- cor(df)
+
+
+print("MATRICE DE CORRELATION (PEARSON)")
+print(round(matrice_corr, 3)) 
+
+
+par(mfrow=c(1,1))
+plot(1, type="n", main="Matrice de Corrélation\n", 
+     axes=FALSE, xlab="", ylab="", 
+     xlim=c(0, ncol(matrice_corr)+1), ylim=c(0, nrow(matrice_corr)+1))
+
+for(i in 1:nrow(matrice_corr)) {
+  for(j in 1:ncol(matrice_corr)) {
+    text(j, nrow(matrice_corr) - i + 1, round(matrice_corr[i,j], 2), cex=1.5)
+  }
+}
+axis(3, at=1:ncol(matrice_corr), labels=colnames(matrice_corr), las=1, tick=FALSE, cex.axis=0.8)
+axis(2, at=nrow(matrice_corr):1, labels=rownames(matrice_corr), las=1, tick=FALSE, cex.axis=0.8)
+```
+
+------------------------------------------------------------------------
+
+## 3) Nuages de points
+
+Visualisation de la forme des relations entre BTC et chaque X.
+
+```{r}
+# ETAPE 3 : LES NUAGES DE POINTS (SCATTER PLOTS)
+par(mfrow=c(2,3)) 
+
+# 1. BTC vs ETH
+plot(df$X_ETH, df$Y_BTC, main="1. Nuage : BTC vs ETH", 
+     xlab="Rendement ETH", ylab="Rendement BTC", pch=19, col=MY_COLOR, cex=0.5)
+
+# 2. BTC vs SP500
+plot(df$X_SP500, df$Y_BTC, main="2. Nuage : BTC vs SP500", 
+     xlab="Rendement SP500", ylab="Rendement BTC", pch=19, col=MY_COLOR, cex=0.5)
+
+# 3. BTC vs GOLD
+plot(df$X_GOLD, df$Y_BTC, main="3. Nuage : BTC vs GOLD", 
+     xlab="Rendement GOLD", ylab="Rendement BTC", pch=19, col=MY_COLOR, cex=0.5)
+
+# 4. BTC vs FGI
+plot(df$X_FGI, df$Y_BTC, main="4. Nuage : BTC vs FGI", 
+     xlab="Score FGI", ylab="Rendement BTC", pch=19, col=MY_COLOR, cex=0.5)
+
+# 5. BTC vs TAUX
+plot(df$X_TAUX, df$Y_BTC, main="5. Nuage : BTC vs TAUX", 
+     xlab="Taux Fed", ylab="Rendement BTC", pch=19, col=MY_COLOR, cex=0.5)
+
+plot.new() 
+```
+
+------------------------------------------------------------------------
+
+## 4) Régressions linéaires
+
+Ajustement d’un modèle linéaire BTC \~ X et tracé des droites.
+
+```{r}
+# ETAPE 4 : LA REGRESSION LINEAIRE (DROITES)
+
+mod_eth <- lm(Y_BTC ~ X_ETH, data=df)
+mod_sp  <- lm(Y_BTC ~ X_SP500, data=df)
+mod_gold<- lm(Y_BTC ~ X_GOLD, data=df)
+mod_fgi <- lm(Y_BTC ~ X_FGI, data=df)
+mod_taux<- lm(Y_BTC ~ X_TAUX, data=df)
+
+
+par(mfrow=c(2,3))
+plot(df$X_ETH, df$Y_BTC, main="Reg: BTC/ETH", xlab="ETH", ylab="BTC", pch=19, col=MY_COLOR, cex=0.3); abline(mod_eth, col="red", lwd=2) 
+plot(df$X_SP500, df$Y_BTC, main="Reg: BTC/SP500", xlab="SP500", ylab="BTC", pch=19, col=MY_COLOR, cex=0.3); abline(mod_sp, col="red", lwd=2)
+plot(df$X_GOLD, df$Y_BTC, main="Reg: BTC/GOLD", xlab="GOLD", ylab="BTC", pch=19, col=MY_COLOR, cex=0.3); abline(mod_gold, col="red", lwd=2)
+plot(df$X_FGI, df$Y_BTC, main="Reg: BTC/FGI", xlab="FGI", ylab="BTC", pch=19, col=MY_COLOR, cex=0.3); abline(mod_fgi, col="red", lwd=2)
+plot(df$X_TAUX, df$Y_BTC, main="Reg: BTC/TAUX", xlab="Taux", ylab="BTC", pch=19, col=MY_COLOR, cex=0.3); abline(mod_taux, col="red", lwd=2)
+plot.new()
+```
+
+------------------------------------------------------------------------
+
+## 5) Analyse des résidus
+
+Contrôle visuel des résidus standardisés (seuils ±2).
+
+```{r}
+# ETAPE 5 : ANALYSE DES RESIDUS
+
+res_eth <- rstandard(mod_eth); fit_eth <- fitted(mod_eth)
+res_sp  <- rstandard(mod_sp);  fit_sp  <- fitted(mod_sp)
+res_gold<- rstandard(mod_gold);fit_gold<- fitted(mod_gold)
+res_fgi <- rstandard(mod_fgi); fit_fgi <- fitted(mod_fgi)
+res_taux<- rstandard(mod_taux);fit_taux<- fitted(mod_taux)
+
+par(mfrow=c(2,3))
+plot(fit_eth, res_eth, main="Résidus : ETH", ylim=c(-4,4), pch=19, col=MY_COLOR, cex=0.5); abline(h=c(-2,2), col="red", lty=2)
+plot(fit_sp, res_sp, main="Résidus : SP500", ylim=c(-4,4), pch=19, col=MY_COLOR, cex=0.5); abline(h=c(-2,2), col="red", lty=2)
+plot(fit_gold, res_gold, main="Résidus : GOLD", ylim=c(-4,4), pch=19, col=MY_COLOR, cex=0.5); abline(h=c(-2,2), col="red", lty=2)
+plot(fit_fgi, res_fgi, main="Résidus : FGI", ylim=c(-4,4), pch=19, col=MY_COLOR, cex=0.5); abline(h=c(-2,2), col="red", lty=2)
+plot(fit_taux, res_taux, main="Résidus : TAUX", ylim=c(-4,4), pch=19, col=MY_COLOR, cex=0.5); abline(h=c(-2,2), col="red", lty=2)
+plot.new()
+```
+
+------------------------------------------------------------------------
+
+## 6) Prévisions
+
+Prédictions de BTC pour des scénarios de valeurs de X (points orange).
+
+```{r}
+# ETAPE 6 : PREVISIONS
+par(mfrow=c(2,3))
+
+# 1. ETH
+plot(df$X_ETH, df$Y_BTC, main="Prévision : ETH", pch=19, col=MY_COLOR, cex=0.3); abline(mod_eth, col="red")
+new_eth <- data.frame(X_ETH=c(-0.1, 0, 0.1))
+points(new_eth$X_ETH, predict(mod_eth, new_eth), col="orange", pch=19, cex=2)
+
+# 2. SP500
+plot(df$X_SP500, df$Y_BTC, main="Prévision : SP500", pch=19, col=MY_COLOR, cex=0.3); abline(mod_sp, col="red")
+new_sp <- data.frame(X_SP500=c(-0.05, 0, 0.05))
+points(new_sp$X_SP500, predict(mod_sp, new_sp), col="orange", pch=19, cex=2)
+
+# 3. GOLD
+plot(df$X_GOLD, df$Y_BTC, main="Prévision : GOLD", pch=19, col=MY_COLOR, cex=0.3); abline(mod_gold, col="red")
+new_gold <- data.frame(X_GOLD=c(-0.02, 0, 0.02))
+points(new_gold$X_GOLD, predict(mod_gold, new_gold), col="orange", pch=19, cex=2)
+
+# 4. FGI
+plot(df$X_FGI, df$Y_BTC, main="Prévision : FGI", pch=19, col=MY_COLOR, cex=0.3); abline(mod_fgi, col="red")
+new_fgi <- data.frame(X_FGI=c(10, 50, 90))
+points(new_fgi$X_FGI, predict(mod_fgi, new_fgi), col="orange", pch=19, cex=2)
+
+# 5. TAUX
+plot(df$X_TAUX, df$Y_BTC, main="Prévision : TAUX", pch=19, col=MY_COLOR, cex=0.3); abline(mod_taux, col="red")
+new_taux <- data.frame(X_TAUX=c(2, 4, 6))
+points(new_taux$X_TAUX, predict(mod_taux, new_taux), col="orange", pch=19, cex=2)
+
+plot.new()
+```
+
+------------------------------------------------------------------------
+
+## 7) Leviers (points influents)
+
+Détection des observations avec fort levier.
+
+```{r}
+# ETAPE 7 : CALCUL DES LEVIERS
+hat_eth <- influence(mod_eth)$hat
+hat_sp  <- influence(mod_sp)$hat
+hat_gold<- influence(mod_gold)$hat
+hat_fgi <- influence(mod_fgi)$hat
+hat_taux<- influence(mod_taux)$hat
+
+par(mfrow=c(2,3))
+plot(hat_eth, type="h", main="Leviers : ETH", col=MY_COLOR, ylab="Levier"); abline(h=2*mean(hat_eth), col="red", lty=2)
+plot(hat_sp, type="h", main="Leviers : SP500", col=MY_COLOR, ylab="Levier"); abline(h=2*mean(hat_sp), col="red", lty=2)
+plot(hat_gold, type="h", main="Leviers : GOLD", col=MY_COLOR, ylab="Levier"); abline(h=2*mean(hat_gold), col="red", lty=2)
+plot(hat_fgi, type="h", main="Leviers : FGI", col=MY_COLOR, ylab="Levier"); abline(h=2*mean(hat_fgi), col="red", lty=2)
+plot(hat_taux, type="h", main="Leviers : TAUX", col=MY_COLOR, ylab="Levier"); abline(h=2*mean(hat_taux), col="red", lty=2)
+plot.new()
+```
+
+------------------------------------------------------------------------
+
+## 8) Amélioration des modèles (suppression outlier)
+
+On retire le point le plus influent (max levier) et on compare les droites + R².
+
+```{r}
+# ETAPE 8 : AMELIORATION DES MODELES (SUPPRIME OUTLIERS COMME DANS EXO )
+
+par(mfrow=c(2,3)) 
+
+#MODELE 1 : ETH
+idx_out_eth <- which.max(hat_eth) # Index du pire outlier
+df_eth_clean <- df[-idx_out_eth, ] # Nouveau dataset sans lui
+mod_eth_new <- lm(Y_BTC ~ X_ETH, data=df_eth_clean) # Nouveau modèle
+
+
+plot(df$X_ETH, df$Y_BTC, main="Optimisation : ETH", xlab="ETH", ylab="BTC", pch=19, col="gray", cex=0.4)
+abline(mod_eth, col="red", lwd=1, lty=2)       # Avant (Rouge pointillé)
+abline(mod_eth_new, col="green", lwd=2)        # Après (Vert)
+legend("topleft", legend=c(paste("R2=", round(summary(mod_eth)$r.squared,3)), 
+                           paste("New R2=", round(summary(mod_eth_new)$r.squared,3))), 
+       text.col=c("red", "green"), bty="n", cex=0.8)
+
+
+# SP500
+idx_out_sp <- which.max(hat_sp)
+df_sp_clean <- df[-idx_out_sp, ]
+mod_sp_new <- lm(Y_BTC ~ X_SP500, data=df_sp_clean)
+
+plot(df$X_SP500, df$Y_BTC, main="Optimisation : SP500", xlab="SP500", ylab="BTC", pch=19, col="gray", cex=0.4)
+abline(mod_sp, col="red", lwd=1, lty=2)
+abline(mod_sp_new, col="green", lwd=2)
+legend("topleft", legend=c(paste("R2=", round(summary(mod_sp)$r.squared,3)), 
+                           paste("New R2=", round(summary(mod_sp_new)$r.squared,3))), 
+       text.col=c("red", "green"), bty="n", cex=0.8)
+
+
+# GOLD
+idx_out_gold <- which.max(hat_gold)
+df_gold_clean <- df[-idx_out_gold, ]
+mod_gold_new <- lm(Y_BTC ~ X_GOLD, data=df_gold_clean)
+
+plot(df$X_GOLD, df$Y_BTC, main="Optimisation : GOLD", xlab="GOLD", ylab="BTC", pch=19, col="gray", cex=0.4)
+abline(mod_gold, col="red", lwd=1, lty=2)
+abline(mod_gold_new, col="green", lwd=2)
+legend("topleft", legend=c(paste("R2=", round(summary(mod_gold)$r.squared,3)), 
+                           paste("New R2=", round(summary(mod_gold_new)$r.squared,3))), 
+       text.col=c("red", "green"), bty="n", cex=0.8)
+
+
+# FGI
+idx_out_fgi <- which.max(hat_fgi)
+df_fgi_clean <- df[-idx_out_fgi, ]
+mod_fgi_new <- lm(Y_BTC ~ X_FGI, data=df_fgi_clean)
+
+plot(df$X_FGI, df$Y_BTC, main="Optimisation : FGI", xlab="FGI", ylab="BTC", pch=19, col="gray", cex=0.4)
+abline(mod_fgi, col="red", lwd=1, lty=2)
+abline(mod_fgi_new, col="green", lwd=2)
+legend("topleft", legend=c(paste("R2=", round(summary(mod_fgi)$r.squared,3)), 
+                           paste("New R2=", round(summary(mod_fgi_new)$r.squared,3))), 
+       text.col=c("red", "green"), bty="n", cex=0.8)
+
+
+# TAUX
+idx_out_taux <- which.max(hat_taux)
+df_taux_clean <- df[-idx_out_taux, ]
+mod_taux_new <- lm(Y_BTC ~ X_TAUX, data=df_taux_clean)
+
+plot(df$X_TAUX, df$Y_BTC, main="Optimisation : TAUX", xlab="TAUX", ylab="BTC", pch=19, col="gray", cex=0.4)
+abline(mod_taux, col="red", lwd=1, lty=2)
+abline(mod_taux_new, col="green", lwd=2)
+legend("topleft", legend=c(paste("R2=", round(summary(mod_taux)$r.squared,3)), 
+                           paste("New R2=", round(summary(mod_taux_new)$r.squared,3))), 
+       text.col=c("red", "green"), bty="n", cex=0.8)
+
+plot.new()
+
+# Reset final des graphiques
+par(mfrow=c(1,1))
+```
+
+## [b. Croisement Qualitatif × Qualitatif]{.underline}
+
+On étudie les liens entre des variables qualitatives (**trend**, **fgi_simple**, **fgi_category**) avec : tableaux de contingence (effectifs/fréquences), profils lignes/colonnes, graphiques en barres et test d’indépendance du Chi-Deux (avec vérification manuelle).
+
+---
+
+## 1) Chargement et nettoyage
+
+```{r}
+# ANALYSE QUALITATIF x QUALITATIF
+
+
+# 1. CHARGEMENT ET NETTOYAGE
+
+# Lecture des données
+Mydata <- read.table("dataset(2).csv", header=TRUE, sep=";", stringsAsFactors=TRUE)
+
+# Nettoyage : on enlève les vides
+Mydata <- Mydata[!is.na(Mydata$trend) & !is.na(Mydata$fgi_simple), ]
+Mydata$trend <- droplevels(Mydata$trend)
+Mydata$fgi_simple <- droplevels(Mydata$fgi_simple)
+Mydata$fgi_category <- droplevels(Mydata$fgi_category)
+
+
+Mydata$fgi_simple <- factor(Mydata$fgi_simple, levels=c("Fear", "Neutral", "Greed"))
+Mydata$fgi_category <- factor(Mydata$fgi_category, levels=c("Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"))
+
+summary(Mydata)
+```
+
+---
+
+## 2) Analyse 1 : Trend × FGI simple
+
+```{r}
+# ANALYSE 1 : TREND (Tendance) x FGI SIMPLE
+
+
+# 1 : Tableau de Contingence (Effectifs et Fréquences)
+cat("1 : Tableau des Effectifs Observés (nij)\n")
+cont1 <- table(Mydata$trend, Mydata$fgi_simple)
+print(addmargins(cont1)) 
+
+cat("Tableau des Fréquences (fij)\n")
+freq1 <- prop.table(cont1)
+print(round(addmargins(freq1), 4))
+
+# 2 : Profils Lignes 
+cat("Q2 : Profils Lignes (Somme ligne = 1) \n")
+prof_lignes1 <- prop.table(cont1, 1)
+print(round(prof_lignes1, 4))
+
+# Graphique Q2
+barplot(t(prof_lignes1), beside=TRUE, legend.text=TRUE,
+        col=c("tomato", "gold", "limegreen"),
+        main="1. Profils Lignes : Sentiment (Simple) selon Tendance",
+        xlab="Tendance", ylab="Fréquence")
+
+# 3 : Profils Colonnes
+cat(" 3 : Profils Colonnes (Somme colonne = 1) \n")
+prof_col1 <- prop.table(cont1, 2)
+print(round(prof_col1, 4))
+
+# Graphique 3
+barplot(prof_col1, beside=TRUE, legend.text=TRUE,
+        col=c("lightblue", "steelblue"),
+        main="1. Profils Colonnes : Tendance selon Sentiment (Simple)",
+        xlab="Sentiment (Simple)", ylab="Fréquence")
+
+# 4 : Indépendance et Chi-Deux
+cat(" 4a : Tableau des Effectifs Théoriques (Calcul Automatique) \n")
+resultat <- chisq.test(cont1)
+print(round(resultat$expected, 2))
+
+
+cat("VERIFICATION MANUELLE (Boucle for) \n")
+tab_theo_manuel1 <- matrix(0, nrow=nrow(cont1), ncol=ncol(cont1)) 
+total_obs <- sum(cont1)
+marge_lignes <- rowSums(cont1)
+marge_cols <- colSums(cont1)
+
+for (i in 1:nrow(cont1)) { 
+  for (j in 1:ncol(cont1)) { 
+    tab_theo_manuel1[i,j] <- (marge_lignes[i] * marge_cols[j]) / total_obs
+  } 
+}
+print(round(tab_theo_manuel1, 2))
+
+cat(" 4b : Test du Chi-Deux et Conclusion \n")
+print(paste("Statistic (Distance Chi-2) :", round(resultat$statistic, 4)))
+print(paste("Parameter (Degrés de liberté) :", resultat$parameter))
+print(paste("P-value :", format.pval(resultat$p.value)))
+```
+
+---
+
+## 3) Analyse 2 : Trend × FGI category
+
+```{r}
+# ANALYSE 2 : TREND (Tendance) x FGI CATEGORY
+cat("ANALYSE 2 : TREND vs FGI CATEGORY")
+
+# 1
+cont2 <- table(Mydata$trend, Mydata$fgi_category)
+print(addmargins(cont2))
+
+# 2
+prof_lignes2 <- prop.table(cont2, 1)
+barplot(t(prof_lignes2), beside=TRUE, legend.text=TRUE,
+        col=c("darkred", "red", "yellow", "green", "darkgreen"),
+        main="2. Profils Lignes : Category selon Tendance", xlab="Tendance")
+
+# 3
+prof_col2 <- prop.table(cont2, 2)
+barplot(prof_col2, beside=TRUE, legend.text=TRUE,
+        col=c("lightblue", "steelblue"),
+        main="2. Profils Colonnes : Tendance selon Category", xlab="Category")
+
+# 4
+res2 <- chisq.test(cont2)
+cat("Effectifs Théoriques (Calcul Automatique) :\n")
+print(round(res2$expected, 2))
+
+
+cat("VERIFICATION MANUELLE (Boucle for) \n")
+tab_theo_manuel2 <- matrix(0, nrow=nrow(cont2), ncol=ncol(cont2)) 
+total_obs2 <- sum(cont2)
+marge_lignes2 <- rowSums(cont2)
+marge_cols2 <- colSums(cont2)
+
+for (i in 1:nrow(cont2)) { 
+  for (j in 1:ncol(cont2)) { 
+    tab_theo_manuel2[i,j] <- (marge_lignes2[i] * marge_cols2[j]) / total_obs2
+  } 
+}
+print(round(tab_theo_manuel2, 2))
+
+print(paste("Statistic (Distance Chi-2) :", round(res2$statistic, 4)))
+print(paste("Parameter (Degrés de liberté) :", res2$parameter))
+print(paste("P-value :", format.pval(res2$p.value)))
+```
+
+---
+
+## 4) Analyse 3 : FGI simple × FGI category
+
+```{r}
+# ANALYSE 3 : FGI SIMPLE x FGI CATEGORY (Nouvelle demande)
+cat("ANALYSE 3 : FGI SIMPLE vs FGI CATEGORY\n")
+
+# 1 : Tableau de Contingence
+cat("1 : Tableau des Effectifs Observés (nij) \n")
+# Attention à l'ordre : Ligne = Simple, Colonne = Category
+cont3 <- table(Mydata$fgi_simple, Mydata$fgi_category)
+print(addmargins(cont3)) 
+
+cat("1 : Tableau des Fréquences (fij) \n")
+freq3 <- prop.table(cont3)
+print(round(addmargins(freq3), 4))
+
+# 2 : Profils Lignes
+cat("2 : Profils Lignes (Distribution des Categories dans chaque Simple) \n")
+prof_lignes3 <- prop.table(cont3, 1)
+print(round(prof_lignes3, 4))
+
+# Graphique 2
+# On s'attend à ce que la ligne "Fear" contienne "Extreme Fear" et "Fear"
+barplot(t(prof_lignes3), beside=TRUE, legend.text=TRUE,
+        col=c("darkred", "red", "yellow", "green", "darkgreen"),
+        main="3. Profils Lignes : Category selon Simple",
+        xlab="FGI Simple", ylab="Fréquence")
+
+# 3 : Profils Colonnes
+cat("3 : Profils Colonnes (Distribution des Simples dans chaque Category) \n")
+prof_col3 <- prop.table(cont3, 2)
+print(round(prof_col3, 4))
+
+# Graphique 3
+barplot(prof_col3, beside=TRUE, legend.text=TRUE,
+        col=c("tomato", "gold", "limegreen"),
+        main="3. Profils Colonnes : Simple selon Category",
+        xlab="FGI Category", ylab="Fréquence")
+
+# 4 : Indépendance et Chi-Deux
+cat("4a : Tableau des Effectifs Théoriques (Calcul Automatique) \n")
+res3 <- chisq.test(cont3)
+print(round(res3$expected, 2))
+
+# VERIFICATION MANUELLE 
+cat("VERIFICATION MANUELLE (Boucle for) \n")
+tab_theo_manuel3 <- matrix(0, nrow=nrow(cont3), ncol=ncol(cont3)) 
+total_obs3 <- sum(cont3)
+marge_lignes3 <- rowSums(cont3)
+marge_cols3 <- colSums(cont3)
+
+for (i in 1:nrow(cont3)) { 
+  for (j in 1:ncol(cont3)) { 
+    tab_theo_manuel3[i,j] <- (marge_lignes3[i] * marge_cols3[j]) / total_obs3
+  } 
+}
+print(round(tab_theo_manuel3, 2))
+
+cat("\n 4b : Test du Chi-Deux et Conclusion \n")
+print(paste("Statistic (Distance Chi-2) :", round(res3$statistic, 4)))
+print(paste("Parameter (Degrés de liberté) :", res3$parameter))
+print(paste("P-value :", format.pval(res3$p.value)))
+
+if(res3$p.value < 0.05) {
+  cat("CONCLUSION : P-value < 5%. Les variables sont FORITEMENT LIÉES (Logique !).\n")
+} else {
+  cat("CONCLUSION : Indépendance (Ce serait très surprenant ici).\n")
+}
+```
+
+## [c. Croisement Quantitatif × Qualitatif]{.underline}
+
+On étudie l’effet d’un facteur qualitatif (**FGI simple** ou **FGI category**) sur des variables quantitatives (rendements, score FGI, taux FED).
+
+------------------------------------------------------------------------
+
+## 1) Chargement et préparation
+
+```{r}
+# ANALYSE BIVARIEE : QUANTITATIF x QUALITATIF
+
+
+# 1. CHARGEMENT ET PREPARATION
+dataset <- read.csv("dataset(2).csv", header = TRUE, sep = ";", dec = ".")
+
+cols_num <- c("ret_BTC", "ret_ETH", "ret_GOLD", "ret_SP500", "fgi_score", "fed_real_rate")
+for(col in cols_num) {
+  if(is.character(dataset[[col]])) {
+    dataset[[col]] <- as.numeric(gsub(",", ".", dataset[[col]]))
+  }
+}
+
+# FACTEURS
+dataset$cat_SIMPLE <- factor(dataset$fgi_simple, levels = c("Fear", "Neutral", "Greed"))
+dataset$cat_CATEGORY <- factor(dataset$fgi_category, levels = c("Extreme Fear", "Fear", "Neutral", "Greed", "Extreme Greed"))
+
+df_clean <- na.omit(dataset)
+N <- nrow(df_clean)
+```
+
+------------------------------------------------------------------------
+
+## 2) Fonction d’analyse (boxplot + ANOVA + tests)
+
+```{r}
+# 2. FONCTION D'ANALYSE
+analyse_quanti_quali <- function(variable_quanti, nom_actif, variable_quali, nom_facteur) {
+  
+  cat(" ANALYSE : ", nom_actif, " vs ", nom_facteur, "\n")
+  
+  # A. Boxplot (Visuel)
+  nb_niveaux <- length(levels(variable_quali))
+  couleurs <- if(nb_niveaux == 3) c("orange", "grey", "lightblue") else heat.colors(nb_niveaux)
+  
+  boxplot(variable_quanti ~ variable_quali, 
+          main = paste(nom_actif, "en fonction de", nom_facteur),
+          xlab = nom_facteur, ylab = nom_actif, col = couleurs, las = 1)
+  
+  # B. Modèle Linéaire et ANOVA 
+  mon_modele <- lm(variable_quanti ~ variable_quali)
+  res_anova <- anova(mon_modele)
+  print(res_anova)
+  
+  # C. Calculs Manuels
+  var_inter <- res_anova$`Sum Sq`[1] / N
+  var_intra <- res_anova$`Sum Sq`[2] / N
+  var_total <- var_inter + var_intra
+  rapport_corr <- var_inter / var_total
+  
+  cat("CALCULS MANUELS (Rapport de Corrélation)\n")
+  cat("Rapport de Corrélation (Eta2) : ", round(rapport_corr, 6), "\n")
+  cat("Part de variance expliquée    : ", round(rapport_corr * 100, 3), "%\n")
+  
+  # D. VALIDATION & POST-HOC 
+  cat("VALIDATION DES HYPOTHESES\n")
+  
+  # 1. Test d'Homogénéité des Variances 
+  test_bartlett <- bartlett.test(variable_quanti ~ variable_quali)
+  cat("Test de Bartlett (Homogénéité) P-value : ", format.pval(test_bartlett$p.value, digits=3), "\n")
+  
+  # 2. Test de Normalité des Résidus (Shapiro-Wilk)
+  residus <- residuals(mon_modele)
+  if(length(residus) < 5000) {
+    test_shapiro <- shapiro.test(residus)
+    cat("Test de Shapiro (Normalité)    P-value : ", format.pval(test_shapiro$p.value, digits=3), "\n")
+  } else {
+    cat("Test de Shapiro : Non effectué (N > 5000)\n")
+  }
+  
+  # 3. Test Post-Hoc (Tukey HSD)
+  p_value_anova <- res_anova$`Pr(>F)`[1]
+  
+  if(!is.na(p_value_anova) && p_value_anova < 0.05) {
+    cat("TEST POST-HOC DE TUKEY (Quelles paires sont différentes ?\n")
+    # On utilise aov() pour TukeyHSD car il ne prend pas lm() directement parfois
+    mon_aov <- aov(variable_quanti ~ variable_quali)
+    print(TukeyHSD(mon_aov))
+  } else {
+    cat("Pas de test Post-Hoc (ANOVA non significative)\n")
+  }
+}
+```
+
+------------------------------------------------------------------------
+
+## 3) Exécution des analyses
+
+### Partie A : selon FGI simple (3 niveaux)
+
+```{r}
+# 3. EXECUTION DES ANALYSES
+
+
+# PARTIE A : FGI SIMPLE
+
+cat("PARTIE A : ANALYSES SELON FGI SIMPLE (3 Niveaux)\n")
+
+analyse_quanti_quali(df_clean$ret_BTC, "Rendement BTC", df_clean$cat_SIMPLE, "FGI Simple")
+analyse_quanti_quali(df_clean$ret_ETH, "Rendement ETH", df_clean$cat_SIMPLE, "FGI Simple")
+analyse_quanti_quali(df_clean$ret_GOLD, "Rendement GOLD", df_clean$cat_SIMPLE, "FGI Simple")
+analyse_quanti_quali(df_clean$ret_SP500, "Rendement SP500", df_clean$cat_SIMPLE, "FGI Simple")
+analyse_quanti_quali(df_clean$fgi_score, "Score FGI", df_clean$cat_SIMPLE, "FGI Simple")
+analyse_quanti_quali(df_clean$fed_real_rate, "Taux FED", df_clean$cat_SIMPLE, "FGI Simple")
+```
+
+### Partie B : selon FGI category (5 niveaux)
+
+```{r}
+# PARTIE B : FGI CATEGORY
+
+cat("PARTIE B : ANALYSES SELON FGI CATEGORY (5 Niveaux)\n")
+
+analyse_quanti_quali(df_clean$ret_BTC, "Rendement BTC", df_clean$cat_CATEGORY, "FGI Category")
+analyse_quanti_quali(df_clean$ret_ETH, "Rendement ETH", df_clean$cat_CATEGORY, "FGI Category")
+analyse_quanti_quali(df_clean$ret_GOLD, "Rendement GOLD", df_clean$cat_CATEGORY, "FGI Category")
+analyse_quanti_quali(df_clean$ret_SP500, "Rendement SP500", df_clean$cat_CATEGORY, "FGI Category")
+analyse_quanti_quali(df_clean$fgi_score, "Score FGI", df_clean$cat_CATEGORY, "FGI Category")
+analyse_quanti_quali(df_clean$fed_real_rate, "Taux FED", df_clean$cat_CATEGORY, "FGI Category")
 
 # [3 - Analyse Multivarié]{.underline}
 
