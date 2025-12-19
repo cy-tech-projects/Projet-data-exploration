@@ -282,7 +282,7 @@ Chargement du fichier, sélection des variables utiles et nettoyage des NA.
 # ETAPE 1 : PREPARATION DES DONNEES
 
 # 1. Chargement
-dataset <- read.table("dataset(2).csv", header=TRUE, sep=";", dec=".")
+dataset <- read.table("dataset.csv", header=TRUE, sep=";", dec=".")
 
 # 2. Sélection des variables (Rendements et Indicateurs)
 df <- data.frame(
@@ -567,7 +567,7 @@ par(mfrow=c(1,1))
 
 On étudie les liens entre des variables qualitatives (**trend**, **fgi_simple**, **fgi_category**) avec : tableaux de contingence (effectifs/fréquences), profils lignes/colonnes, graphiques en barres et test d’indépendance du Chi-Deux (avec vérification manuelle).
 
----
+------------------------------------------------------------------------
 
 ## 1) Chargement et nettoyage
 
@@ -578,7 +578,7 @@ On étudie les liens entre des variables qualitatives (**trend**, **fgi_simple**
 # 1. CHARGEMENT ET NETTOYAGE
 
 # Lecture des données
-Mydata <- read.table("dataset(2).csv", header=TRUE, sep=";", stringsAsFactors=TRUE)
+Mydata <- read.table("dataset.csv", header=TRUE, sep=";", stringsAsFactors=TRUE)
 
 # Nettoyage : on enlève les vides
 Mydata <- Mydata[!is.na(Mydata$trend) & !is.na(Mydata$fgi_simple), ]
@@ -593,7 +593,7 @@ Mydata$fgi_category <- factor(Mydata$fgi_category, levels=c("Extreme Fear", "Fea
 summary(Mydata)
 ```
 
----
+------------------------------------------------------------------------
 
 ## 2) Analyse 1 : Trend × FGI simple
 
@@ -657,7 +657,7 @@ print(paste("Parameter (Degrés de liberté) :", resultat$parameter))
 print(paste("P-value :", format.pval(resultat$p.value)))
 ```
 
----
+------------------------------------------------------------------------
 
 ## 3) Analyse 2 : Trend × FGI category
 
@@ -705,7 +705,7 @@ print(paste("Parameter (Degrés de liberté) :", res2$parameter))
 print(paste("P-value :", format.pval(res2$p.value)))
 ```
 
----
+------------------------------------------------------------------------
 
 ## 4) Analyse 3 : FGI simple × FGI category
 
@@ -790,7 +790,7 @@ On étudie l’effet d’un facteur qualitatif (**FGI simple** ou **FGI category
 
 
 # 1. CHARGEMENT ET PREPARATION
-dataset <- read.csv("dataset(2).csv", header = TRUE, sep = ";", dec = ".")
+dataset <- read.csv("dataset.csv", header = TRUE, sep = ";", dec = ".")
 
 cols_num <- c("ret_BTC", "ret_ETH", "ret_GOLD", "ret_SP500", "fgi_score", "fed_real_rate")
 for(col in cols_num) {
@@ -905,6 +905,7 @@ analyse_quanti_quali(df_clean$ret_GOLD, "Rendement GOLD", df_clean$cat_CATEGORY,
 analyse_quanti_quali(df_clean$ret_SP500, "Rendement SP500", df_clean$cat_CATEGORY, "FGI Category")
 analyse_quanti_quali(df_clean$fgi_score, "Score FGI", df_clean$cat_CATEGORY, "FGI Category")
 analyse_quanti_quali(df_clean$fed_real_rate, "Taux FED", df_clean$cat_CATEGORY, "FGI Category")
+```
 
 # [3 - Analyse Multivarié]{.underline}
 
@@ -919,7 +920,6 @@ L'ACP nécessite de travailler sur les variables **centrées et réduites** pour
 # Préparation des Données
 
 Nous chargeons le fichier CSV et isolons les variables quantitatives pertinentes pour l'ACP.
-
 ```{r}
 library(FactoMineR)
 library(factoextra)
