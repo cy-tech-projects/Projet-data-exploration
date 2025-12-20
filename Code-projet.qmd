@@ -17,9 +17,10 @@ format:
 editor: visual
 ---
 
-# 1 - Analyse Univariée
+# [1 - Analyse Univariée]{.underline}
 
-## Introduction
+## [a. Introduction]{.underline}
+
 Ce projet porte sur l'exploration de données financières issues des marchés de crypto-actifs et de la finance traditionnelle. Avec un échantillon de **2 496 observations**, notre étude vise à quantifier les relations entre les rendements des actifs (BTC, ETH, S&P 500), la volatilité et la psychologie des investisseurs via le *Fear & Greed Index*.
 
 L'analyse univariée qui suit permet de valider la qualité des données et d'identifier les caractéristiques statistiques (moyenne, volatilité, valeurs extrêmes) avant toute modélisation.
@@ -31,17 +32,16 @@ L'analyse univariée qui suit permet de valider la qualité des données et d'id
 library(ggplot2)
 library(dplyr)
 ```
-# [1 - Analyse Univariée]{.underline}
 
-## a. Chargement du Dataset
+## [b. Chargement du Dataset]{.underline}
 
-# Le fichier est chargé et la colonne de date est définie comme index (ou `row.names`).
+Le fichier est chargé et la colonne de date est définie comme index (ou `row.names`).
 
 ```{r}
 Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
 ```
 
-## b. Les Variables Quantitatives
+## [c. Les Variables Quantitatives]{.underline}
 
 ### Résumé Numérique :
 
@@ -52,6 +52,8 @@ Dataset = read.table("dataset.csv", header=T,sep=';',row.names=1)
 ```{r}
 str(Dataset)
 ```
+
+`summary()` met en évidence les types de variables utilisés et montre clairement quelles colonnes doivent être converties en numérique.
 
 ```{r}
 summary(Dataset)
@@ -239,7 +241,7 @@ boxplot(Dataset$Fear_Index_score, main="Boxplot du Fear Index Category Simple",
 summary(Dataset$Fear_Index_score)
 ```
 
-## c. Les Variables Qualitatives
+## [d. Les Variables Qualitatives]{.underline}
 
 L'analyse des variables qualitatives se fait par tableaux de contingence et diagrammes.
 
@@ -1122,11 +1124,7 @@ analyse_quanti_quali(df_clean$fed_real_rate, "Taux FED",
 
 # [3 - Analyse Multivarié]{.underline}
 
-## [b. ACP]{.underline}
-
-### Introduction
-
-Cette analyse vise à appliquer l'Analyse en Composantes Principales (**ACP**) sur un jeu de données financier multidimensionnel. L'objectif est de réduire la dimensionnalité des données, d'identifier les structures de corrélation entre les variables (notamment le **taux réel de la Fed** et les prix des actifs), et de visualiser le nuage d'observations sur un plan à deux dimensions.
+## [a. ACP :]{.underline}
 
 L'ACP nécessite de travailler sur les variables **centrées et réduites** pour garantir que les variables à forte magnitude (comme `close_BTC`) ne dominent pas le calcul de l'inertie.
 
@@ -1167,7 +1165,7 @@ res.pca <- PCA(df_pca, scale.unit = TRUE, graph = FALSE)
 
 L'inertie totale du nuage est la somme des valeurs propres ($\lambda_k$). Le graphique de l'éboulis (Scree Plot) permet de visualiser la variance expliquée par chaque axe et de choisir le nombre d'axes à retenir.
 
-Tableau des Valeurs Propres
+Tableau des Valeurs Propres :
 
 ```{r}
 eigenvalues <- get_eigenvalue(res.pca)
@@ -1230,19 +1228,3 @@ fviz_pca_biplot(res.pca,
                 title = "Biplot ACP : Variables et Observations"
 )
 ```
-
-### Conclusion de l'ACP
-
-1.  **Réduction de Dimensionnalité :** Les composantes principales (CP1 et CP2) ont permis de condenser $\sim 80\%$ à $\sim 90\%$ (selon les résultats obtenus) de la variance totale dans un plan 2D.
-
-2.  **Interprétation de l'Axe 1 (CP1) :**
-
-    -   Le premier axe est souvent l'axe de la **"Performance Globale du Marché"**. Si `close_BTC`, `close_ETH`, et `close_SP500` pointent fortement dans la même direction, cet axe capture les mouvements synchronisés de ces actifs.
-
-3.  **Interprétation de l'Axe 2 (CP2) :**
-
-    -   Le deuxième axe, orthogonal à CP1, explique le résidu de variance. Il pourrait capturer les différences de volatilité ou l'influence du sentiment (ex: `fgi_score`).
-
-4.  **Relation Taux/Prix :** La corrélation entre **`fed_real_rate`** et les prix des actifs (Crypto/SP500) est visuellement représentée par l'angle entre leurs vecteurs. Si l'angle est proche de $180^{\circ}$ (opposés), la **corrélation est négative** : une hausse du taux est associée à une baisse des prix des actifs risqués.
-
-5.  **Analyse des Jours Extrêmes :** Les points (jours) éloignés du centre du nuage correspondent à des périodes où les valeurs des variables sont très différentes de la moyenne. En les projetant sur les vecteurs de variables, on peut les **qualifier** (ex: "Jour de forte volatilité et de taux bas").
