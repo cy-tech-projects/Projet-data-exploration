@@ -147,7 +147,7 @@ Les histogrammes permettent de visualiser la distribution de chaque variable (Pr
 hist(Dataset$Prix_BTC,main="Histogramme du Prix du BTC", 
      xlab ="Prix du BTC", col="blue", border="black")
 
-hist(Dataset$Volume_BTC,main="Histogramme de la Volatilité  du BTC", 
+hist(Dataset$Volume_BTC,main="Histogramme du volume  du BTC", 
      xlab ="Volatilité du BTC", col="green", border="black")
 
 hist(Dataset$Var_Prix_BTC,main="Histogramme de la Variation du Prix du BTC",
